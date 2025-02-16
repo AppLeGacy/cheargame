@@ -110,7 +110,6 @@
         <a onclick="stopAudio()" class="btn active">強制停止</a>
     </div>
 
-
     <div id="timer">00:00</div>
     <div id="progress-container">
         <div id="progress-bar"></div>
@@ -234,7 +233,7 @@
             loopInterval = setInterval(checkAndLoopAudio, 1000);
             timer = setTimeout(() => {
                 stopAudio();
-                startWaitTimer();
+                startWaitTimer(); // 音楽終了後に待機タイマーを開始
             }, (totalTime - remainingPauseTime) * 1000);
         }
 
@@ -255,7 +254,7 @@
         }
 
         function startWaitTimer() {
-            let waitTime = 30;
+            let waitTime = 30; // 待機時間を30秒に設定
             let waitInterval = setInterval(() => {
                 if (!isPlaying) {
                     clearInterval(waitInterval);
@@ -265,7 +264,7 @@
                 waitTime--;
                 if (waitTime < 0) {
                     clearInterval(waitInterval);
-                    playAudio();
+                    playAudio(); // 30秒経過後に再度音楽を再生
                 }
             }, 1000);
         }
