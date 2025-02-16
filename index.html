@@ -264,7 +264,10 @@ function startWaitTimer() {
         waitTime--;
         if (waitTime < 0) {
             clearInterval(waitInterval);
-            playAudio();  // 待機後、再生を再開
+            // 音楽再生後に次の再生が始まらないように明示的に処理を追加
+            if (!isPlaying) {
+                playAudio();  // 待機後、再生を再開
+            }
         }
     }, 1000);
 }
@@ -302,6 +305,7 @@ function updateTimerDisplay(seconds) {
     document.getElementById("timer").textContent =
         (min < 10 ? "0" : "") + min + ":" + (sec < 10 ? "0" : "") + sec;
 }
+
 
 
     </script>
