@@ -139,169 +139,170 @@
 
     <script>
         let sound = new Audio();
-        let timer;
-        let animationFrame;
-        let isPlaying = false;
-        let isPaused = false;
-        let startTime = 0;
-        let totalTime = 0;
-        let remainingPauseTime = 0;
-        let loopInterval;
+let timer;
+let animationFrame;
+let isPlaying = false;
+let isPaused = false;
+let startTime = 0;
+let totalTime = 0;
+let remainingPauseTime = 0;
+let loopInterval;
 
-        const defaultAudioSrc = "kingsoul_acou44_roop.mp3";
+const defaultAudioSrc = "kingsoul_acou44_roop.mp3";
 
-        window.addEventListener('load', () => {
-            document.getElementById('file1').addEventListener('change', (evt) => {
-                let input = evt.target;
-                if (input.files.length === 0) return;
+window.addEventListener('load', () => {
+    document.getElementById('file1').addEventListener('change', (evt) => {
+        let input = evt.target;
+        if (input.files.length === 0) return;
 
-                const file = input.files[0];
-                if (!file.type.match('audio.*')) {
-                    alert("音声ファイルを選択してください。");
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = () => {
-                    sound.pause();
-                    sound.src = reader.result;
-                    sound.onloadedmetadata = () => {
-                        if (isPlaying) playAudio();
-                    };
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-
-        function playAudio() {
-            if (isPlaying) {
-                if (isPaused) {
-                    resumeAudio();
-                }
-                return;
-            }
-            isPlaying = true;
-            isPaused = false;
-
-            let useDefaultAudio = document.getElementById('default').checked;
-            if (useDefaultAudio) {
-                sound.src = defaultAudioSrc;
-            }
-
-            let interval = parseFloat(document.getElementById('interval').value);
-
-            if (isNaN(interval) || interval < 0.5 || interval > 60) {
-                alert("間隔は0.5分(30秒)以上60分以下に設定してください。");
-                document.getElementById('interval').value = Math.max(0.5, Math.min(interval, 60));
-                isPlaying = false;
-                return;
-            }
-
-            interval = interval * 60;
-            let randomOffset = Math.floor(Math.random() * 31) - 20;
-            totalTime = interval + randomOffset;
-
-            startTime = performance.now() - remainingPauseTime * 1000;
-            sound.play();
-            updateProgress();
-
-            loopInterval = setInterval(checkAndLoopAudio, 1000);
-
-            timer = setTimeout(() => {
-                stopAudio();
-                startWaitTimer();
-            }, totalTime * 1000);
+        const file = input.files[0];
+        if (!file.type.match('audio.*')) {
+            alert("音声ファイルを選択してください。");
+            return;
         }
 
-        function pauseAudio() {
-            if (!isPlaying || isPaused) return;
-
-            isPaused = true;
+        const reader = new FileReader();
+        reader.onload = () => {
             sound.pause();
-            remainingPauseTime = (performance.now() - startTime) / 1000;
-            clearTimeout(timer);
-            clearInterval(loopInterval);
-            cancelAnimationFrame(animationFrame);
+            sound.src = reader.result;
+            sound.onloadedmetadata = () => {
+                if (isPlaying) playAudio();
+            };
+        };
+        reader.readAsDataURL(file);
+    });
+});
+
+function playAudio() {
+    if (isPlaying) {
+        if (isPaused) {
+            resumeAudio();
         }
+        return;
+    }
+    isPlaying = true;
+    isPaused = false;
 
-        function resumeAudio() {
-            isPaused = false;
-            startTime = performance.now() - remainingPauseTime * 1000;
-            sound.play();
-            updateProgress();
+    let useDefaultAudio = document.getElementById('default').checked;
+    if (useDefaultAudio) {
+        sound.src = defaultAudioSrc;
+    }
 
-            loopInterval = setInterval(checkAndLoopAudio, 1000);
-            timer = setTimeout(() => {
-                stopAudio();
-                startWaitTimer(); // 音楽終了後に待機タイマーを開始
-            }, (totalTime - remainingPauseTime) * 1000);
+    let interval = parseFloat(document.getElementById('interval').value);
+
+    if (isNaN(interval) || interval < 0.5 || interval > 60) {
+        alert("間隔は0.5分(30秒)以上60分以下に設定してください。");
+        document.getElementById('interval').value = Math.max(0.5, Math.min(interval, 60));
+        isPlaying = false;
+        return;
+    }
+
+    interval = interval * 60;
+    let randomOffset = Math.floor(Math.random() * 31) - 20;
+    totalTime = interval + randomOffset;
+
+    startTime = performance.now() - remainingPauseTime * 1000;
+    sound.play();
+    updateProgress();
+
+    loopInterval = setInterval(checkAndLoopAudio, 1000);
+
+    timer = setTimeout(() => {
+        stopAudio();
+        startWaitTimer();  // 音楽再生後、30秒の待機を開始
+    }, totalTime * 1000);
+}
+
+function pauseAudio() {
+    if (!isPlaying || isPaused) return;
+
+    isPaused = true;
+    sound.pause();
+    remainingPauseTime = (performance.now() - startTime) / 1000;
+    clearTimeout(timer);
+    clearInterval(loopInterval);
+    cancelAnimationFrame(animationFrame);
+}
+
+function resumeAudio() {
+    isPaused = false;
+    startTime = performance.now() - remainingPauseTime * 1000;
+    sound.play();
+    updateProgress();
+
+    loopInterval = setInterval(checkAndLoopAudio, 1000);
+    timer = setTimeout(() => {
+        stopAudio();
+        startWaitTimer();  // 音楽再生後、30秒の待機を開始
+    }, (totalTime - remainingPauseTime) * 1000);
+}
+
+function stopAudio() {
+    if (!isPlaying) return;
+    isPlaying = false;
+    isPaused = false;
+    remainingPauseTime = 0;
+
+    sound.pause();
+    sound.currentTime = 0;
+    clearTimeout(timer);
+    clearInterval(loopInterval);
+    cancelAnimationFrame(animationFrame);
+
+    updateTimerDisplay(0);
+    document.getElementById("progress-bar").style.width = "0%";
+}
+
+function startWaitTimer() {
+    let waitTime = 30;
+    let waitInterval = setInterval(() => {
+        if (isPlaying) {
+            clearInterval(waitInterval);
+            return;
         }
-
-        function stopAudio() {
-            if (!isPlaying) return;
-            isPlaying = false;
-            isPaused = false;
-            remainingPauseTime = 0;
-
-            sound.pause();
-            sound.currentTime = 0;
-            clearTimeout(timer);
-            clearInterval(loopInterval);
-            cancelAnimationFrame(animationFrame);
-
-            updateTimerDisplay(0);
-            document.getElementById("progress-bar").style.width = "0%";
+        updateTimerDisplay(waitTime);
+        waitTime--;
+        if (waitTime < 0) {
+            clearInterval(waitInterval);
+            playAudio();  // 待機後、再生を再開
         }
+    }, 1000);
+}
 
-        function startWaitTimer() {
-            let waitTime = 30; // 待機時間を30秒に設定
-            let waitInterval = setInterval(() => {
-                if (!isPlaying) {
-                    clearInterval(waitInterval);
-                    return;
-                }
-                updateTimerDisplay(waitTime);
-                waitTime--;
-                if (waitTime < 0) {
-                    clearInterval(waitInterval);
-                    playAudio(); // 30秒経過後に再度音楽を再生
-                }
-            }, 1000);
-        }
+function checkAndLoopAudio() {
+    if (!isPlaying) {
+        clearInterval(loopInterval);
+        return;
+    }
 
-        function checkAndLoopAudio() {
-            if (!isPlaying) {
-                clearInterval(loopInterval);
-                return;
-            }
+    let remainingTime = totalTime - ((performance.now() - startTime) / 1000);
+    if (remainingTime > 0 && sound.ended) {
+        sound.currentTime = 0;
+        sound.play();
+    }
+}
 
-            let remainingTime = totalTime - ((performance.now() - startTime) / 1000);
-            if (remainingTime > 0 && sound.ended) {
-                sound.currentTime = 0;
-                sound.play();
-            }
-        }
+function updateProgress() {
+    if (!isPlaying) return;
 
-        function updateProgress() {
-            if (!isPlaying) return;
+    let elapsed = (performance.now() - startTime) / 1000;
+    let remainingTime = Math.max(0, totalTime - elapsed);
 
-            let elapsed = (performance.now() - startTime) / 1000;
-            let remainingTime = Math.max(0, totalTime - elapsed);
+    updateTimerDisplay(remainingTime);
+    document.getElementById("progress-bar").style.width = (remainingTime / totalTime) * 100 + "%";
 
-            updateTimerDisplay(remainingTime);
-            document.getElementById("progress-bar").style.width = (remainingTime / totalTime) * 100 + "%";
+    if (remainingTime > 0) {
+        animationFrame = requestAnimationFrame(updateProgress);
+    }
+}
 
-            if (remainingTime > 0) {
-                animationFrame = requestAnimationFrame(updateProgress);
-            }
-        }
+function updateTimerDisplay(seconds) {
+    let min = Math.floor(seconds / 60);
+    let sec = Math.floor(seconds % 60);
+    document.getElementById("timer").textContent =
+        (min < 10 ? "0" : "") + min + ":" + (sec < 10 ? "0" : "") + sec;
+}
 
-        function updateTimerDisplay(seconds) {
-            let min = Math.floor(seconds / 60);
-            let sec = Math.floor(seconds % 60);
-            document.getElementById("timer").textContent =
-                (min < 10 ? "0" : "") + min + ":" + (sec < 10 ? "0" : "") + sec;
-        }
 
     </script>
 
